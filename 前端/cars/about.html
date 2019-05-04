@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>汽车销量分析</title>
+    <link rel="icon" href="img/car.ico">
+
+    <!--bootstrap相关-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css"
+          integrity="sha384-PDle/QlgIONtM1aqA2Qemk5gPOE7wFq8+Em+G/hmo5Iq0CCmYZLv3fVRDJ4MMwEA" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/js/bootstrap.min.js"
+            integrity="sha384-7aThvCh9TypR7fIc2HV4O/nFMVCBwyIUKL8XCtKE+8xgCgl/PQGuFsvShjr74PBp"
+            crossorigin="anonymous"></script>
+    <!--Excel-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.14.1/xlsx.core.min.js"></script>
+</head>
+<body>
+<nav id="nav" class="navbar navbar-expand-lg navbar-light" style="border-bottom: gray solid 1px;height: 50px">
+    <a class="navbar-brand text-monospace" href="#"><img src="img/car.ico" width="30" height="30">汽车销量可视化设计</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse text-monospace" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item ">
+                <a class="nav-link " href="index.html">总体销量<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link " href="cars.html">各车型销量<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                   data-toggle="dropdown"
+                   aria-haspopup="true" aria-expanded="false">
+                    按车身类型划分
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item text-monospace" href="type.html?type=saloon">轿车</a>
+                    <a class="dropdown-item" href="type.html?type=SUV">SUV</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="map.html">按区域划分</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="about.html">关于</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div>
+    <h3>作品灵感：</h3>
+    <h5>
+        &emsp;&emsp;在今年的计划里我有两个关于前端的计划，一是学习Bootstrap的使用，另一个则是学习ECharts，而这个项目同时使用了这两种框架，符合我的初衷。
+        在一开始原本计划做的是关于电影票房的可视化，但是在一番搜索下发现票房可视化这块在互联网上有不少的实现。后来很幸运的摇中了号，所以决定搜索一下
+        汽车销量的可视化，发现这块可视化在网上非常匮乏。所以最终决定做这个汽车销量可视化。
+    </h5>
+
+    <h3>关于个人</h3>
+    <h5>
+        &emsp;&emsp;姓名：魏宇望 <br/>
+        &emsp;&emsp;常用博客：<a href="http://yuwang.blog.csdn.net">http://yuwang.blog.csdn.net</a><br/>
+        &emsp;&emsp;GitHub：<a href="https://github.com/Silverados">https://github.com/Silverados</a><br/>
+        &emsp;&emsp;毕业于：广东财经大学软件工程专业<br/>
+    </h5>
+
+</div>
+
+
+<!--动态调整界面块大小-->
+<script>
+    let clientHeight = window.innerHeight;
+    let navHeight = document.getElementById("nav").clientHeight;
+    let divHeight = clientHeight - navHeight + "px";
+    document.getElementById("main").style.height = divHeight;
+
+
+</script>
+</body>
+</html>

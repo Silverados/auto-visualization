@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>汽车销量分析</title>
+    <link rel="icon" href="img/car.ico">
+
+    <!--bootstrap相关-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css"
+          integrity="sha384-PDle/QlgIONtM1aqA2Qemk5gPOE7wFq8+Em+G/hmo5Iq0CCmYZLv3fVRDJ4MMwEA" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/js/bootstrap.min.js"
+            integrity="sha384-7aThvCh9TypR7fIc2HV4O/nFMVCBwyIUKL8XCtKE+8xgCgl/PQGuFsvShjr74PBp"
+            crossorigin="anonymous"></script>
+
+    <!--ECharts相关-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.1.0/echarts.min.js"></script>
+
+    <!--datepicker相关-->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/locales/bootstrap-datepicker.zh-CN.min.js"></script>
+    <!--Excel-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.14.1/xlsx.core.min.js"></script>
+</head>
+<body>
+<!--导航条-->
+<nav id="nav" class="navbar navbar-expand-lg navbar-light" style="border-bottom: gray solid 1px;height: 50px">
+    <a class="navbar-brand text-monospace" href="#"><img src="img/car.ico" width="30" height="30">汽车销量可视化设计</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse text-monospace" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item ">
+                <a class="nav-link " href="index.html">总体销量<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link " href="#">各车型销量<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                   data-toggle="dropdown"
+                   aria-haspopup="true" aria-expanded="false">
+                    按车身类型划分
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item text-monospace" href="type.html?type=轿车">轿车</a>
+                    <a class="dropdown-item" href="type.html?type=SUV">SUV</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="map.html">按区域划分</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="about.html">关于</a>
+            </li>
+        </ul>
+        <div class="form-inline my-2 my-lg-0 input-daterange">
+            <label>请先输入时间:</label>
+            <input id="start" type="text" size="8px" readonly class="form-control secondary">
+            <div class="input-group-addon">to</div>
+            <input id="end" type="text" size="8px" readonly class="form-control secondary">
+            <button class="btn btn-outline-secondary my-2 my-sm-0" onclick="query()">查询</button>
+        </div>
+    </div>
+</nav>
+
+
+<!--时间选择脚本-->
+<script>
+    let date = new Date(2018,11);
+    // date.setMonth(date.getMonth() - 2);
+
+    let yearAndMonth = date.getFullYear() + '-' + monthHelper(date);
+
+    function monthHelper(date) {
+        let month = date.getMonth() + 1;
+        if (month < 10) {
+            month = '0' + month;
+        }
+        return month;
+    }
+
+    $('#start').attr("value", yearAndMonth);
+    $('#end').attr("value", yearAndMonth);
+
+
+    $('#start').datepicker(
+        {
+            language: "zh-CN",
+            autoclose: true,
+            format: "yyyy-mm",
+            startView: 3,
+            minViewMode: 1,
+            maxViewMode: 2,
+            clearBtn: true,
+            todayBtn: false,
+            endDate: date,
+        }).on('changeDate', function (ev) {
+        if (ev.date) {
+            $("#end").datepicker('setStartDate', new Date(ev.date.valueOf()))
+        } else {
+            $("#end").datepicker('setStartDate', null);
+        }
+    });
+
+    $("#end").datepicker(
+        {
+            language: "zh-CN",
+            autoclose: true,
+            format: "yyyy-mm",
+            startView: 3,
+            minViewMode: 1,
+            maxViewMode: 2,
+            todayBtn: false,
+            endDate: date,
+        }).on('changeDate', function (ev) {
+        if (ev.date) {
+            $('#start').datepicker('setEndDate', new Date(ev.date.valueOf()))
+        } else {
+            $('#start').datepicker('setEndDate', new Date());
+        }
+    })
+
+
+</script>
+
+<!--ECharts界面块-->
+<div id="main" style="width: 100%;margin-top: 5px;height: 500px"></div>
+
+<!--动态调整界面块大小-->
+<script>
+    let clientHeight = window.innerHeight;
+    let navHeight = document.getElementById("nav").clientHeight;
+    let divHeight = clientHeight - navHeight + "px";
+    document.getElementById("main").style.height = divHeight;
+
+
+</script>
+
+<!--绘制ECharts,包含异步请求-->
+<script>
+    let topK = 10;
+    var myChart = echarts.init(document.getElementById('main'));
+    myChart.setOption({
+        title: {
+            text: '车型销量统计',
+            left: '48%',
+            subtext: '点击饼图可查看往年数据',
+            subtextStyle:{
+                fontSize: 14
+            }
+        },
+        toolbox: {
+            feature: {
+                saveAsImage: {
+                    show: true,
+                    icon: 'path://M102.4 723.8144l253.696-141.0048a128 128 0 0 1 131.328 4.1984l108.032 69.376a76.8 76.8 0 0 0 88.2176-3.6864L921.6 470.272V153.6a51.2 51.2 0 0 0-51.2-51.2H153.6a51.2 51.2 0 0 0-51.2 51.2v570.2144z m0 58.5728V870.4a51.2 51.2 0 0 0 51.2 51.2h716.8a51.2 51.2 0 0 0 51.2-51.2v-335.616l-206.7456 158.5664a128 128 0 0 1-147.0464 6.144l-108.032-69.376a76.8 76.8 0 0 0-78.848-2.56L102.4 782.4384zM153.6 51.2h716.8a102.4 102.4 0 0 1 102.4 102.4v716.8a102.4 102.4 0 0 1-102.4 102.4H153.6a102.4 102.4 0 0 1-102.4-102.4V153.6a102.4 102.4 0 0 1 102.4-102.4z m153.6 384a128 128 0 1 1 0-256 128 128 0 0 1 0 256z m0-51.2a76.8 76.8 0 1 0 0-153.6 76.8 76.8 0 0 0 0 153.6z',
+                    iconStyle: {
+                        borderColor: '#8a8a8a'
+                    }
+                },
+            }
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c} ({d}%)"
+        },
+        legend: {
+            type: 'scroll',
+            inactiveColor: '#a1a1a1',
+            orient: 'vertical',
+            right: 10,
+            top: 20,
+            bottom: 20,
+            data: [],
+            selected: {}
+        },
+        series: [
+            {
+                name: '销量',
+                type: 'pie',
+                roseType: true,
+                radius: '55%',
+                center: ['40%', '50%'],
+                data: [],
+                itemStyle: {
+                    emphasis: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    },
+                },
+                label: {
+                    formatter: '{a|{a}}{abg|}\n{hr|}\n  {b|{b}：}{c}  {per|{d}%}  ',
+                    backgroundColor: '#eee',
+                    borderColor: '#aaa',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    rich: {
+                        a: {
+                            color: '#999',
+                            lineHeight: 22,
+                            align: 'center'
+                        },
+                        hr: {
+                            borderColor: '#aaa',
+                            width: '100%',
+                            borderWidth: 0.5,
+                            height: 0
+                        },
+                        b: {
+                            fontSize: 16,
+                            lineHeight: 33
+                        },
+                        per: {
+                            color: '#eee',
+                            backgroundColor: '#334455',
+                            padding: [2, 4],
+                            borderRadius: 2
+                        }
+
+                    }
+                }
+            }
+        ]
+    });
+    myChart.showLoading({
+        text: '请先选择时间~',
+        color: '#c23531',
+        textColor: '#000',
+        maskColor: 'rgba(255, 255, 255, 0.8)',
+        zlevel: 0
+    }); //数据加载完之前先显示一段简单的loading动画
+
+
+    query();
+
+    function query() {
+        var legendData = [];
+        var seriesData = [];
+        var selected = {};
+
+        let starts = document.getElementById("start").value.split("-");
+        let ends = document.getElementById("end").value.split("-");
+        $.ajax({
+            type: "post",
+            async: true, //异步请求（同步请求将会锁住浏览器，用户其他操作必须等待请求完成才可以执行）
+            url: "http://111.230.50.64:8088/sales/kind",
+            dataType: "json",
+            data: {
+                "startYear": starts[0],
+                "startMonth": starts[1],
+                "endYear": ends[0],
+                "endMonth": ends[1]
+            },
+            success: function (data) {
+                for (let i = 0; i < data.length; i++) {
+                    legendData.push(data[i].carName);
+                    seriesData.push({
+                        name: data[i].carName,
+                        value: data[i].count
+                    });
+                    selected[data[i].carName] = i < topK;
+                }
+                myChart.setOption({
+                    title: {
+                        text: starts[0] + "年" + starts[1] + "月" + '~' + ends[0] + "年" + ends[1] + '月 车型销量统计',
+                        left: '40%',
+                    },
+                    legend: {
+                        data: legendData,
+                        selected: selected
+                    },
+                    series: [
+                        {
+                            data: seriesData,
+                        }
+                    ],
+                    toolbox: {
+                        feature: {
+                            dataView: {
+                                show: true,
+                                readOnly: true,
+                                optionToContent: function (opt) {
+                                    console.log(opt);
+                                    let datas = opt.series[0].data;
+                                    let series = opt.series; //折线图数据
+                                    let tdHeads = '<td  style="padding: 0 10px">车型</td>'; //表头
+                                    let tdBodys = ''; //数据
+                                    series.forEach(function (item) {
+                                        //组装表头
+                                        tdHeads += `<td style="padding: 0 10px">${item.name}</td>`;
+                                    });
+                                    let table = `<table border="1" style="margin-left:20px;border-collapse:collapse;font-size:14px;text-align:center"><tbody><tr>${tdHeads} </tr>`;
+                                    for (let i = 0; i < datas.length; i++) {
+                                        tdBodys += `<td>${ datas[i].value }</td>`;
+                                        table += `<tr><td style="padding: 0 10px">${datas[i].name}</td>${tdBodys}</tr>`;
+                                        tdBodys = '';
+
+                                    }
+                                    table += '</tbody></table>';
+                                    return table;
+                                }
+                            },
+                            myTool1: {
+                                show: true,
+                                title: '下载Excel表格',
+                                icon: 'path://M855.733157 63.83998 168.264796 63.83998c-57.672514 0-104.425328 46.752814-104.425328 104.426351l0 687.46836c0 57.672514 46.752814 104.425328 104.425328 104.425328L855.733157 960.16002c57.672514 0 104.425328-46.752814 104.425328-104.425328L960.158485 168.266331C960.158485 110.592794 913.406694 63.83998 855.733157 63.83998zM665.702126 731.750913l-63.856353 0-71.352071-128.613216c-6.999414-12.591783-15.093766-28.780487-24.283056-48.567135-10.79281 14.591323-23.984251 30.082132-39.573297 46.468334L344.019683 731.750913l-77.94728 0 209.857589-222.149543L351.514377 292.249087l64.75584 0 56.661488 99.532901c14.989389 26.185382 23.581068 41.4746 25.783223 45.868677 5.194302 9.794064 10.891048 21.48636 17.08819 35.075867 14.787798-19.983123 37.670971-46.267766 68.653613-78.846766l96.534614-101.630678 76.747965 0L545.184285 519.194866 665.702126 731.750913z',
+                                onclick: function () {
+                                    let wb = XLSX.utils.book_new();
+
+                                    let list = [];
+                                    for (let i = 0; i < seriesData.length; i++) {
+                                        list.push({
+                                            "车型": seriesData[i].name,
+                                            "销量": seriesData[i].value,
+                                        })
+                                    }
+                                    let sheet = XLSX.utils.json_to_sheet(list);
+                                    XLSX.utils.book_append_sheet(wb, sheet, 'sheet1');
+                                    // console.log(myChart.getOption().title[0].text);
+                                    XLSX.writeFile(wb, myChart.getOption().title[0].text+'.xlsx');
+                                }
+                            }
+                        },
+                    },
+                });
+                myChart.on('click', function (params) {
+                    window.open('sales.html?name=' + encodeURIComponent(params.name));
+                });
+                myChart.hideLoading();
+            },
+        });
+    }
+
+</script>
+
+</body>
+</html>
+

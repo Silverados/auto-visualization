@@ -1,0 +1,25 @@
+spring:
+  profiles:
+    active: dev
+  logging:
+    config: classpath:log4j2-spring.xml
+---
+spring:
+  profiles: dev
+  datasource:
+    driver: com.mysql.jdbc.Driver
+    url: jdbc:mysql://111.230.50.64:3306/cars?useUnicode=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    maxactive: 8
+    minidle: 3
+    maxwait: 50000
+server:
+  port: 8088
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: xyz.wywag.cars.entity
+  configuration:
+    map-underscore-to-camel-case: true
+

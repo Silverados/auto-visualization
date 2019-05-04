@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration monitorInterval="1">
+    <appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%d{yyyyMMdd HH:mm:ss SSS}[%thread][%level]-%msg%n" />
+        </Console>
+
+        <RollingFile name="RollingFile" fileName="logs/web-server.log"
+                     filePattern="logs/$${date:yyyy-MM}/web-server-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout
+                    pattern="%d{yyyyMMdd HH:mm:ss SSS}[%thread][%level]-%msg%n" />
+            <SizeBasedTriggeringPolicy size="100 MB"/>
+            <DefaultRolloverStrategy max="500"/>
+        </RollingFile>
+    </appenders>
+
+    <loggers>
+        <logger name="xyz.wywag" level="debug" additivity="false">
+            <appender-ref ref="RollingFile" />
+            <appender-ref ref="Console" />
+        </logger>
+
+        <root level="debug">
+            <appender-ref ref="RollingFile" />
+            <appender-ref ref="Console" />
+        </root>
+    </loggers>
+</configuration>

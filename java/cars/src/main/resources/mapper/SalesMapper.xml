@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="xyz.wywag.cars.mapper.SalesMapper">
+    <select id="getTotal" resultType="xyz.wywag.cars.entity.response.TotalSalesEntity">
+        SELECT year,month,sales
+        FROM total_sales
+    </select>
+    <select id="getKind" resultType="xyz.wywag.cars.entity.response.KindSalesEntity">
+        SELECT car_name,SUM(sales) count
+        FROM kind_sales
+        WHERE
+            CASE #{startYear} = #{endYear}
+                WHEN TRUE
+                    THEN
+                        year = #{startYear} AND month >= #{startMonth} AND month &lt;= #{endMonth}
+                ELSE
+                    year > #{startYear} AND #{endYear} > year
+                      OR (year = #{startYear} AND month >= #{startMonth})
+                      OR (year = #{endYear} AND #{endMonth} >= month)
+            END
+        GROUP BY(car_name)
+        ORDER BY(count) DESC
+    </select>
+    <select id="getKindWithType" resultType="xyz.wywag.cars.entity.response.KindSalesEntity">
+        SELECT kind_sales.car_name,SUM(sales) count
+        FROM kind_sales JOIN car_param
+            ON kind_sales.car_name = car_param.car_name
+        WHERE
+            CASE #{type} = 'SUV'
+                WHEN TRUE
+                    THEN
+                        car_type = 'SUV'
+                ELSE
+                    car_type  != 'SUV' AND car_type != 'MPV'
+            END
+
+            AND
+
+            CASE #{startYear} = #{endYear}
+              WHEN TRUE
+                  THEN
+                      year = #{startYear} AND month >= #{startMonth} AND month &lt;= #{endMonth}
+              ELSE
+                  year > #{startYear} AND #{endYear} > year
+                  OR (year = #{startYear} AND month >= #{startMonth})
+                  OR (year = #{endYear} AND #{endMonth} >= month)
+            END
+        GROUP BY(car_name)
+        ORDER BY(count) DESC
+    </select>
+    <select id="getTotalWithMonth" resultType="java.lang.Integer">
+        SELECT sum(sales)
+        FROM total_sales
+        WHERE
+            CASE #{startYear} = #{endYear}
+            WHEN TRUE
+                THEN
+                    year = #{startYear} AND month >= #{startMonth} AND month &lt;= #{endMonth}
+            ELSE
+                year > #{startYear} AND #{endYear} > year
+                OR (year = #{startYear} AND month >= #{startMonth})
+                OR (year = #{endYear} AND #{endMonth} >= month)
+            END
+    </select>
+    <select id="getKindByName" resultType="xyz.wywag.cars.entity.response.KindSalesEntity">
+        SELECT sales,year,month
+        FROM kind_sales
+        WHERE car_name = #{name}
+    </select>
+</mapper>
